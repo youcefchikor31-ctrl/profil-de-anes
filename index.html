@@ -106,7 +106,7 @@
 
 <section id="bio" class="section">
     <h2 id="bio-title">About Me</h2>
-    <p id="bio-text" style="max-width:600px;text-align:center;line-height:1.9;">انا انس</p>
+    <p id="bio-text" style="max-width:600px;text-align:center;line-height:1.9;"></p>
     <button class="btn" onclick="document.getElementById('home').scrollIntoView({behavior:'smooth'})">Back</button>
 </section>
 
@@ -124,10 +124,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 // ==================== اللغات ====================
+const bioMsg = "أنا أنس دقيش، مواليد، مادخلش روحك زايد 😂. السيت مخدوم من طرف chikor_ysf لي خصه يرسله، و اليفو بلبن.";
+
 const data = {
-    en: { name:"dakkiche anes", bioTitle:"About Me", bioText:"", social:"Social Networks" },
-    ar: { name:"داكيش أنس",   bioTitle:"من أنا",    bioText:"",        social:"حسابات التواصل" },
-    fr: { name:"dakkiche anes", bioTitle:"انا انس دقيش  مواليد مدخلش روحك زايد في يوم من الأيام 😂 سيت مخدوم من طرفchikor_ysfلي خصه يرسله  و اليفو بلبن", bioText:"", social:"Réseaux Sociaux" }
+    en: { name:"dakkiche anes", bioTitle:"About Me", bioText: bioMsg, social:"Social Networks" },
+    ar: { name:"داكيش أنس",   bioTitle:"من أنا",    bioText: bioMsg, social:"حسابات التواصل" },
+    fr: { name:"dakkiche anes", bioTitle:"Qui suis-je", bioText: bioMsg, social:"Réseaux Sociaux" }
 };
 let langs=['en','ar','fr'], langIdx=0;
 function updateUI(){
@@ -347,4 +349,4 @@ window.addEventListener('resize',()=>{
 });
 </script>
 </body>
-      </html>
+</html>
