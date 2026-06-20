@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dakkiche anes - Portfolio</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #000; color: #fff; scroll-behavior: smooth; overflow-x: hidden; }
+
+        /* الكانفاس ثابت خلف كل شيء */
+        #robot-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* كل الأقسام شفافة لأن الخلفية مشتركة */
+        .section {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 20px;
+            z-index: 1;
+        }
+
+        /* طبقة داكنة خفيفة فوق الروبوت لكل قسم لتسهيل القراءة */
+        .section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: -1;
+        }
+
+        /* الأزرار */
+        .btn {
+            width: 250px; padding: 15px; margin: 10px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.06);
+            cursor: pointer; color: white; font-weight: bold;
+            backdrop-filter: blur(12px);
+            transition: 0.3s;
+        }
+        .btn:hover { background: rgba(0,255,179,0.18); transform: translateY(-5px); border-color: #00ffb3; }
+
+        /* صورة البروفايل */
+        .profile-img {
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            border: 4px solid #00ffb3;
+            box-shadow: 0 0 25px #00ffb3;
+            margin-bottom: 20px;
+            object-fit: cover;
+            background-color: #333;
+        }
+
+        /* عنوان الرئيسية */
+        #home h1 {
+            text-shadow: 0 0 20px #00ffb3, 0 0 40px #00ffb355;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        /* اختيار اللغة */
+        .lang-box {
+            position: fixed; top: 20px; left: 20px;
+            z-index: 1000;
+            display: flex; flex-direction: column; gap: 5px;
+        }
+        .arrow { cursor: pointer; background: rgba(0,0,0,0.6); border: 1px solid #00ffb344; padding: 5px 10px; border-radius: 5px; backdrop-filter: blur(8px); }
+
+        h2 { margin-bottom: 20px; font-size: 1.6rem; text-shadow: 0 0 15px #00ffb388; }
+
+        /* موبايل */
+        @media (max-width: 600px) {
+            .btn { width: 85vw; }
+            #home h1 { font-size: 1.5rem; }
+            .profile-img { width: 120px; height: 120px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- الكانفاس ثابت لكل الصفحة -->
+<canvas id="robot-canvas"></canvas>
+
+<div class="lang-box">
+    <div class="arrow" onclick="nextLang()">▲</div>
+    <div id="lang-display" style="text-align:center;font-weight:bold;">EN</div>
+    <div class="arrow" onclick="prevLang()">▼</div>
+</div>
+
+<section id="home" class="section">
+    <img src="chikor.png" alt="dakkiche anes" class="profile-img">
+    <h1 id="name">dakkiche anes</h1>
+    <button class="btn" onclick="document.getElementById('bio').scrollIntoView({behavior:'smooth'})">About Me</button>
+    <button class="btn" onclick="document.getElementById('social').scrollIntoView({behavior:'smooth'})">Social Links</button>
+</section>
+
+<section id="bio" class="section">
+    <h2 id="bio-title">About Me</h2>
+    <p id="bio-text" style="max-width:600px;text-align:center;line-height:1.9;"></p>
+    <button class="btn" onclick="document.getElementById('home').scrollIntoView({behavior:'smooth'})">Back</button>
+</section>
+
+<section id="social" class="section">
+    <h2 id="social-title">Social Networks</h2>
+    <button class="btn" onclick="window.open('https://www.instagram.com/dekkiche_anes?igsh=cHJiZzF0N2Zsamsz')">Instagram</button>
+    <button class="btn" onclick="window.open('https://t.me/213773652966')">Telegram</button>
+    <button class="btn" onclick="window.open('https://wa.me/213773652966')">WhatsApp</button>
+    <button class="btn" onclick="window.open('https://www.snapchat.com/add/anesdekkiche31?share_id=EZnqyCCRdfM&locale=fr-FR')">Snapchat</button>
+    <button class="btn" onclick="window.open('https://www.tiktok.com/@anes.1312dz?_r=1&_t=ZS-97M7sxDG8Kj')">TikTok</button>
+    <button class="btn" onclick="window.open('https://www.facebook.com/dekkich.anes')">Facebook</button>
+    <button class="btn" onclick="document.getElementById('home').scrollIntoView({behavior:'smooth'})">Back</button>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ==================== اللغات ====================
+const data = {
+    en: { name:"dakkiche anes", bioTitle:"About Me", bioText:"", social:"Social Networks" },
+    ar: { name:"داكيش أنس",   bioTitle:"من أنا",    bioText:"",        social:"حسابات التواصل" },
+    fr: { name:"dakkiche anes", bioTitle:"À propos", bioText:"", social:"Réseaux Sociaux" }
+};
+let langs=['en','ar','fr'], langIdx=0;
+function updateUI(){
+    const l=langs[langIdx];
+    document.getElementById('lang-display').innerText=l.toUpperCase();
+    document.getElementById('name').innerText=data[l].name;
+    document.getElementById('bio-title').innerText=data[l].bioTitle;
+    document.getElementById('bio-text').innerText=data[l].bioText;
+    document.getElementById('social-title').innerText=data[l].social;
+}
+function nextLang(){ langIdx=(langIdx+1)%langs.length; updateUI(); }
+function prevLang(){ langIdx=(langIdx-1+langs.length)%langs.length; updateUI(); }
+updateUI();
+
+// ==================== Three.js ====================
+const canvas = document.getElementById('robot-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 100);
+camera.position.set(0, 1.2, 6);
+
+// إضاءة
+scene.add(new THREE.AmbientLight(0x111133, 2.5));
+const blueLight = new THREE.PointLight(0x00ffb3, 4, 22);
+blueLight.position.set(-3, 3, 3);
+scene.add(blueLight);
+const purpleLight = new THREE.PointLight(0xff3da6, 2.5, 18);
+purpleLight.position.set(3, 2, -2);
+scene.add(purpleLight);
+const rimLight = new THREE.DirectionalLight(0xffd23f, 1.2);
+rimLight.position.set(0, 5, -5);
+scene.add(rimLight);
+
+// ===== مواد =====
+const metalMat  = new THREE.MeshStandardMaterial({ color:0x1a1a2e, metalness:0.9, roughness:0.2 });
+const glowMat   = new THREE.MeshStandardMaterial({ color:0x00ffb3, emissive:0x00ffb3, emissiveIntensity:1.8, metalness:0.3, roughness:0.1 });
+const darkMat   = new THREE.MeshStandardMaterial({ color:0x0d0d1a, metalness:0.8, roughness:0.3 });
+const eyeMat    = new THREE.MeshStandardMaterial({ color:0xffd23f, emissive:0xffd23f, emissiveIntensity:3 });
+const accentMat = new THREE.MeshStandardMaterial({ color:0xff3da6, emissive:0xff3da6, emissiveIntensity:1.2, metalness:0.5, roughness:0.2 });
+
+function box(w,h,d,mat,x,y,z){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z); return m; }
+function cyl(rt,rb,h,seg,mat,x,y,z,rx=0,ry=0,rz=0){ const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),mat); m.position.set(x,y,z); m.rotation.set(rx,ry,rz); return m; }
+function sph(r,mat,x,y,z){ const m=new THREE.Mesh(new THREE.SphereGeometry(r,16,16),mat); m.position.set(x,y,z); return m; }
+
+// ===== الروبوت — في المنتصف تماماً =====
+const robotGroup = new THREE.Group();
+scene.add(robotGroup);
+robotGroup.position.set(0, -0.3, 0); // مركز الشاشة
+
+// جسم
+robotGroup.add(box(1.2,1.4,0.7, metalMat, 0,0,0));
+robotGroup.add(box(1.22,0.05,0.72, glowMat,  0, 0.4,0));
+robotGroup.add(box(1.22,0.05,0.72, glowMat,  0,-0.4,0));
+robotGroup.add(box(0.05,1.42,0.72, accentMat, 0.55,0,0));
+robotGroup.add(box(0.05,1.42,0.72, accentMat,-0.55,0,0));
+robotGroup.add(box(0.6,0.5,0.1, darkMat,  0,0.1,0.36));
+robotGroup.add(sph(0.08,glowMat,  0.15,0.15,0.44));
+robotGroup.add(sph(0.08,glowMat, -0.15,0.15,0.44));
+robotGroup.add(sph(0.06,accentMat,0,-0.05,0.44));
+
+// رقبة
+robotGroup.add(cyl(0.18,0.22,0.25,12,darkMat, 0,0.82,0));
+robotGroup.add(cyl(0.2,0.2,0.05,12,glowMat,   0,0.95,0));
+
+// رأس
+robotGroup.add(box(0.9,0.8,0.8, metalMat, 0,1.45,0));
+robotGroup.add(box(0.92,0.05,0.82,glowMat,  0,1.82,0));
+robotGroup.add(box(0.92,0.05,0.82,glowMat,  0,1.08,0));
+robotGroup.add(box(0.1,0.4,0.3, darkMat,  0.5,1.45,0));
+robotGroup.add(box(0.1,0.4,0.3, darkMat, -0.5,1.45,0));
+robotGroup.add(cyl(0.06,0.06,0.15,8,glowMat,  0.56,1.45,0,0,0,Math.PI/2));
+robotGroup.add(cyl(0.06,0.06,0.15,8,glowMat, -0.56,1.45,0,0,0,Math.PI/2));
+const eyeL=box(0.18,0.1,0.05,eyeMat, 0.22,1.5,0.41);
+const eyeR=box(0.18,0.1,0.05,eyeMat,-0.22,1.5,0.41);
+robotGroup.add(eyeL,eyeR);
+robotGroup.add(box(0.35,0.04,0.05,glowMat, 0,1.22,0.41));
+robotGroup.add(box(0.04,0.04,0.05,glowMat, 0.1,1.22,0.41));
+robotGroup.add(box(0.04,0.04,0.05,glowMat,-0.1,1.22,0.41));
+robotGroup.add(cyl(0.03,0.03,0.4,8,darkMat,0.25,2.05,0));
+robotGroup.add(sph(0.07,glowMat,0.25,2.27,0));
+
+// ذراعان
+const leftArm=new THREE.Group();  leftArm.position.set( 0.75,0.2,0);
+const rightArm=new THREE.Group(); rightArm.position.set(-0.75,0.2,0);
+function buildArm(g){
+    g.add(cyl(0.18,0.18,0.15,12,accentMat,0,0,0,0,0,Math.PI/2));
+    const upper=new THREE.Group(); upper.position.set(0,-0.1,0);
+    upper.add(box(0.28,0.7,0.28,metalMat,0,-0.35,0));
+    upper.add(box(0.3,0.05,0.3,glowMat,0,0,0));
+    upper.add(box(0.3,0.05,0.3,glowMat,0,-0.7,0));
+    g.add(upper);
+    g.add(cyl(0.16,0.16,0.1,12,darkMat,0,-0.75,0));
+    g.add(cyl(0.18,0.18,0.05,12,glowMat,0,-0.78,0));
+    const lower=new THREE.Group(); lower.position.set(0,-0.85,0);
+    lower.add(box(0.24,0.65,0.24,metalMat,0,-0.32,0));
+    lower.add(box(0.26,0.04,0.26,accentMat,0,-0.65,0));
+    g.add(lower);
+    g.add(box(0.22,0.18,0.16,darkMat,0,-1.55,0));
+    for(let i=-1;i<=1;i++) g.add(box(0.05,0.12,0.06,metalMat,i*0.07,-1.7,0.04));
+}
+buildArm(leftArm); buildArm(rightArm);
+robotGroup.add(leftArm,rightArm);
+
+// ساقان
+function buildLeg(x){
+    const g=new THREE.Group(); g.position.set(x,-0.7,0);
+    g.add(cyl(0.2,0.2,0.15,12,accentMat,0,0,0));
+    g.add(box(0.32,0.8,0.32,metalMat,0,-0.47,0));
+    g.add(box(0.34,0.05,0.34,glowMat,0,-0.08,0));
+    g.add(box(0.34,0.05,0.34,glowMat,0,-0.85,0));
+    g.add(cyl(0.18,0.18,0.12,12,darkMat,0,-0.95,0));
+    g.add(box(0.3,0.7,0.3,metalMat,0,-1.32,0));
+    g.add(box(0.32,0.05,0.32,accentMat,0,-1.65,0));
+    g.add(box(0.35,0.14,0.5,metalMat,0,-1.77,0.08));
+    g.add(box(0.37,0.04,0.52,glowMat,0,-1.82,0.08));
+    return g;
+}
+robotGroup.add(buildLeg(0.32),buildLeg(-0.32));
+
+// جسيمات
+const pGeo=new THREE.BufferGeometry();
+const pPos=new Float32Array(400*3);
+for(let i=0;i<pPos.length;i++) pPos[i]=(Math.random()-0.5)*22;
+pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));
+const particles=new THREE.Points(pGeo,new THREE.PointsMaterial({color:0x00ffb3,size:0.04,transparent:true,opacity:0.45}));
+scene.add(particles);
+
+// شبكة
+const grid=new THREE.GridHelper(24,24,0x00ffb3,0x0a0a1a);
+grid.position.y=-2.5;
+grid.material.opacity=0.25;
+grid.material.transparent=true;
+scene.add(grid);
+
+// حلقات
+const ring1=new THREE.Mesh(new THREE.TorusGeometry(2,0.02,8,80),new THREE.MeshStandardMaterial({color:0x00ffb3,emissive:0x00ffb3,emissiveIntensity:0.6}));
+ring1.rotation.x=Math.PI/2;
+scene.add(ring1);
+const ring2=new THREE.Mesh(new THREE.TorusGeometry(1.5,0.015,8,60),new THREE.MeshStandardMaterial({color:0xff3da6,emissive:0xff3da6,emissiveIntensity:0.6}));
+ring2.rotation.x=1.2; ring2.rotation.z=0.5;
+scene.add(ring2);
+
+// ===== تتبع اللمس والماوس =====
+let touchX=0, touchY=0;
+
+// موبايل: تتبع اللمس
+document.addEventListener('touchmove',(e)=>{
+    e.preventDefault();
+    const t=e.touches[0];
+    touchX=(t.clientX/window.innerWidth  - 0.5)*2;
+    touchY=(t.clientY/window.innerHeight - 0.5)*2;
+},{passive:false});
+document.addEventListener('touchstart',(e)=>{
+    const t=e.touches[0];
+    touchX=(t.clientX/window.innerWidth  - 0.5)*2;
+    touchY=(t.clientY/window.innerHeight - 0.5)*2;
+});
+
+// حاسوب: تتبع الماوس
+document.addEventListener('mousemove',(e)=>{
+    touchX=(e.clientX/window.innerWidth  - 0.5)*2;
+    touchY=(e.clientY/window.innerHeight - 0.5)*2;
+});
+
+// ===== حلقة الحركة =====
+let t=0;
+function animate(){
+    requestAnimationFrame(animate);
+    t+=0.012;
+
+    // تأرجح
+    robotGroup.position.y = -0.3 + Math.sin(t*0.8)*0.12;
+
+    // يتبع الإصبع/الماوس
+    robotGroup.rotation.y += (touchX*0.6 - robotGroup.rotation.y)*0.06;
+    robotGroup.rotation.x += (-touchY*0.25 - robotGroup.rotation.x)*0.06;
+
+    // ذراعان
+    leftArm.rotation.x  =  Math.sin(t)*0.25 - 0.3;
+    rightArm.rotation.x = -Math.sin(t)*0.25 - 0.3;
+    leftArm.rotation.z  =  0.15+Math.sin(t*0.7)*0.05;
+    rightArm.rotation.z = -0.15-Math.sin(t*0.7)*0.05;
+
+    // عيون تومض
+    eyeMat.emissiveIntensity = 2+Math.sin(t*3);
+
+    // إضاءة
+    blueLight.intensity   = 3+Math.sin(t*2)*0.8;
+    blueLight.position.x  = Math.sin(t*0.5)*4;
+
+    // حلقات
+    ring1.rotation.z+=0.005;
+    ring2.rotation.y+=0.008;
+    ring1.position.copy(robotGroup.position);
+    ring2.position.copy(robotGroup.position);
+
+    // جسيمات
+    particles.rotation.y+=0.0003;
+
+    // كاميرا تتبع خفيف
+    camera.position.x += (touchX*0.4 - camera.position.x)*0.02;
+    camera.position.y += (-touchY*0.25+1.2 - camera.position.y)*0.02;
+    camera.lookAt(0, 0.8, 0);
+
+    renderer.render(scene,camera);
+}
+animate();
+
+// ===== Resize =====
+window.addEventListener('resize',()=>{
+    renderer.setSize(window.innerWidth,window.innerHeight);
+    camera.aspect=window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+});
+</script>
+</body>
+      </html>
